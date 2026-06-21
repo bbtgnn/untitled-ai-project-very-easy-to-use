@@ -6,6 +6,7 @@
     "start": "bun run src/tui.ts"
   },
   "dependencies": {
-    "@ai-hero/sandcastle": "latest"
+    "@ai-hero/sandcastle": "latest",
+    "@repo/orchestrator": "workspace:*"
   }
 }

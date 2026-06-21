@@ -2,8 +2,14 @@
   "name": "untitled-ai-project",
   "private": true,
   "type": "module",
+  "packageManager": "bun@1.3.12",
   "workspaces": ["apps/*", "packages/*", "prototype/*"],
   "scripts": {
-    "prototype:sandcastle": "bun run --filter @prototype/sandcastle start"
+    "prototype:sandcastle": "bun run --filter @prototype/sandcastle start",
+    "sandcastle:run": "bun run .sandcastle/main.ts",
+    "sandcastle:build-image": "bunx @ai-hero/sandcastle podman build-image"
+  },
+  "dependencies": {
+    "@repo/orchestrator": "workspace:*"
   }
 }

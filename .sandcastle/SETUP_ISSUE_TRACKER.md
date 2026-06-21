@@ -46,7 +46,7 @@ Work out, together with the user, the shell commands for:
 Once the files are wired up, build the sandbox image:
 
 ```
-sandcastle docker build-image
+bun run sandcastle:build-image
 ```
 
 ## 5. Verify

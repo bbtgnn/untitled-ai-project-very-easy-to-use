@@ -30,7 +30,7 @@ _Avoid_: container, VM (unless referring to the provider specifically)
 
 **Podman sandbox**:
 The default sandbox provider for runs — rootless, bind-mounted worktree isolation.
-_Avoid_: Docker (for runs — init may still scaffold Docker artifacts until re-inited for Podman)
+_Avoid_: Docker (for runs — this repo uses Podman via `.sandcastle/Containerfile`)
 
 **Worktree**:
 A git worktree Sandcastle creates when using branch or merge-to-head strategies — the agent's working copy, separate from the host checkout. The orchestrator anchors on `createWorktree()` — a stable handle for interactive sessions, runs, escalation, and session resume on the same branch.

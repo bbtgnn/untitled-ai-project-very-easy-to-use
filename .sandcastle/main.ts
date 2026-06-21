@@ -1,12 +1,13 @@
-import { run, claudeCode } from "@ai-hero/sandcastle";
-import { docker } from "@ai-hero/sandcastle/sandboxes/docker";
+import { fileURLToPath } from "node:url";
+import { agentBranch, runOnWorktree, openWorktree } from "@repo/orchestrator";
 
-// Blank template: customize this to build your own orchestration.
-// Run this with: npx tsx .sandcastle/main.ts
-// Or add to package.json scripts: "sandcastle": "npx tsx .sandcastle/main.ts"
+const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+const branch = agentBranch(process.argv[2] ?? "manual", process.argv[3] ?? "run");
+const prompt =
+  process.argv[4] ??
+  "Human-triggered run via .sandcastle/main.ts. Emit <promise>COMPLETE</promise> when done.";
 
-await run({
-  agent: claudeCode("claude-sonnet-4-6"),
-  sandbox: docker(),
-  promptFile: "./.sandcastle/prompt.md",
-});
+await using wt = await openWorktree({ cwd: repoRoot, branch });
+const outcome = await runOnWorktree(wt, prompt);
+
+console.log(JSON.stringify(outcome, null, 2));

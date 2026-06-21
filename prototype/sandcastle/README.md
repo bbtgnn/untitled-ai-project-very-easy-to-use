@@ -1,14 +1,15 @@
 # Sandcastle prototype — PROTOTYPE, delete when done
 
-**Question:** Does the basic Sandcastle orchestration model (`run` vs `interactive`) fit this bun monorepo, and which sandbox provider should we default to?
+**Question:** Does `createWorktree()` + `wt.run()` / `wt.interactive()` + escalation fit this monorepo?
+
+Uses `@repo/orchestrator` — the logic worth keeping lives there, not here.
 
 ## Run
 
-From repo root:
-
 ```bash
 bun install
-cp .sandcastle/.env.example .sandcastle/.env   # fill in CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY
+cp .sandcastle/.env.example .sandcastle/.env   # OLLAMA_API_KEY
+bun run sandcastle:build-image
 bun run prototype:sandcastle
 ```
 
@@ -16,18 +17,13 @@ bun run prototype:sandcastle
 
 | Key | Action |
 |-----|--------|
-| `r` | AFK `run()` — Podman sandbox, branch `prototype/sandcastle-run` |
-| `i` | `interactive()` — no sandbox, for exploration/research |
+| `w` | `createWorktree()` on `agent/prototype-sandcastle` |
+| `r` | `wt.run()` — pi + Podman + Ollama Cloud |
+| `i` | `wt.interactive()` — pi, no sandbox |
+| `a` | Resume after `NEEDS_HUMAN` escalation |
+| `d` | `wt.close()` — human dismissal |
 | `q` | Quit |
 
-Sandbox pairing is fixed: **run → Podman**, **interactive → no-sandbox**.
+Thin runner (no TUI): `bun run sandcastle:run [trackerId] [slug] [prompt]`
 
-After each action the full prototype state is re-rendered.
-
-## Prerequisites
-
-- Git
-- For `docker` sandbox: Docker Desktop running
-- For any agent call: `.sandcastle/.env` with auth configured
-
-See [NOTES.md](./NOTES.md) for the verdict once you've driven it.
+See [NOTES.md](./NOTES.md) for the verdict.
