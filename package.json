@@ -1,0 +1,9 @@
+{
+  "name": "untitled-ai-project",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/*", "packages/*", "prototype/*"],
+  "scripts": {
+    "prototype:sandcastle": "bun run --filter @prototype/sandcastle start"
+  }
+}
