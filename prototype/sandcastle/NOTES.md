@@ -4,7 +4,7 @@
 
 **Answer:** Yes — with `createWorktree()` as the anchor, Podman for runs, no-sandbox for interactive, and escalation via `NEEDS_HUMAN` + session resume.
 
-**Standalone prototype:** Logic consolidated in `src/logic.ts` for reading and testing without importing `@repo/orchestrator`. When validated, fold decisions into `packages/orchestrator` and delete this folder.
+**Standalone prototype:** Logic split by layer under `src/` (see README). When validated, fold into `packages/orchestrator` and delete this folder.
 
 **Deferred:** Task file schema, Beads, full escalation loop validation end-to-end.
 

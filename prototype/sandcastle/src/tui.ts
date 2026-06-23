@@ -6,9 +6,8 @@ import {
   executeOpenWorktree,
   executeResume,
   executeRun,
-  initialState,
-  type PrototypeState,
-} from "./logic.ts";
+} from "./actions.ts";
+import { initialState, type PrototypeState } from "./state.ts";
 
 const bold = (s: string) => `\x1b[1m${s}\x1b[0m`;
 const dim = (s: string) => `\x1b[2m${s}\x1b[0m`;
@@ -16,7 +15,7 @@ const dim = (s: string) => `\x1b[2m${s}\x1b[0m`;
 function render(state: PrototypeState) {
   console.clear();
   console.log(bold("Sandcastle prototype"));
-  console.log(dim("Standalone logic in src/logic.ts — run / interactive / escalation\n"));
+  console.log(dim("src/actions.ts → orchestrator → sandcastle\n"));
 
   console.log(bold("State"));
   console.log(`  branch:             ${state.branch}`);

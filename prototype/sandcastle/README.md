@@ -2,7 +2,16 @@
 
 **Question:** Does `createWorktree()` + `wt.run()` / `wt.interactive()` + escalation fit this monorepo?
 
-**Standalone:** All orchestrator logic is in [`src/logic.ts`](./src/logic.ts) — no `@repo/orchestrator` dependency. [`src/tui.ts`](./src/tui.ts) is a thin shell.
+**Standalone:** No `@repo/orchestrator` dependency. Logic split by layer:
+
+| File | Layer |
+|------|-------|
+| [`src/tui.ts`](./src/tui.ts) | TUI shell |
+| [`src/actions.ts`](./src/actions.ts) | Prototype actions → state updates |
+| [`src/state.ts`](./src/state.ts) | `PrototypeState` + initial values |
+| [`src/orchestrator.ts`](./src/orchestrator.ts) | Sandcastle worktree API |
+| [`src/env.ts`](./src/env.ts) | `.env` load + pi auth |
+| [`src/constants.ts`](./src/constants.ts) | Signals, model, branch naming |
 
 ## Run
 
