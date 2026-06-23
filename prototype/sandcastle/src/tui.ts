@@ -1,3 +1,4 @@
+import type { Worktree } from "@ai-hero/sandcastle";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import {
@@ -12,13 +13,16 @@ import { initialState, type PrototypeState } from "./state.ts";
 const bold = (s: string) => `\x1b[1m${s}\x1b[0m`;
 const dim = (s: string) => `\x1b[2m${s}\x1b[0m`;
 
-function render(state: PrototypeState) {
+const NO_WORKTREE = "No open worktree — press [w] first.";
+
+function render(state: PrototypeState, worktree: Worktree | null) {
   console.clear();
   console.log(bold("Sandcastle prototype"));
-  console.log(dim("src/actions.ts → orchestrator → sandcastle\n"));
+  console.log(dim("src/actions.ts → sandcastle-config → sandcastle\n"));
 
   console.log(bold("State"));
   console.log(`  branch:             ${state.branch}`);
+  console.log(`  worktree:           ${worktree ? dim("open") : dim("(not open)")}`);
   console.log(`  worktreePath:       ${state.worktreePath ?? dim("(not open)")}`);
   console.log(
     `  pendingEscalation:  ${state.pendingEscalation ? state.pendingEscalation.sessionId : dim("(none)")}`,
@@ -47,11 +51,20 @@ function render(state: PrototypeState) {
   console.log(`  ${bold("[q]")} ${dim("quit")}`);
 }
 
+function requireWorktree(worktree: Worktree | null): worktree is Worktree {
+  if (!worktree) {
+    console.log(dim(NO_WORKTREE));
+    return false;
+  }
+  return true;
+}
+
 async function main() {
   let state = initialState();
+  let worktree: Worktree | null = null;
   const rl = readline.createInterface({ input, output });
 
-  render(state);
+  render(state, worktree);
 
   while (true) {
     const key = (await rl.question("\n> ")).trim().toLowerCase();
@@ -59,40 +72,51 @@ async function main() {
     if (key === "q") break;
 
     if (key === "w") {
-      state = await executeOpenWorktree(state);
-      render(state);
+      if (worktree) {
+        console.log(dim("Worktree already open."));
+        continue;
+      }
+      const opened = await executeOpenWorktree(state);
+      state = opened.state;
+      worktree = opened.worktree;
+      render(state, worktree);
       continue;
     }
 
     if (key === "r") {
-      render({ ...state, running: true });
-      state = await executeRun(state);
-      render(state);
+      if (!requireWorktree(worktree)) continue;
+      render({ ...state, running: true }, worktree);
+      state = await executeRun(state, worktree);
+      render(state, worktree);
       continue;
     }
 
     if (key === "i") {
-      render({ ...state, running: true });
-      state = await executeInteractive(state);
-      render(state);
+      if (!requireWorktree(worktree)) continue;
+      render({ ...state, running: true }, worktree);
+      state = await executeInteractive(state, worktree);
+      render(state, worktree);
       continue;
     }
 
     if (key === "a") {
+      if (!requireWorktree(worktree)) continue;
       if (!state.pendingEscalation) {
         console.log(dim("No pending escalation."));
         continue;
       }
       const answer = await rl.question("Human answer: ");
-      render({ ...state, running: true });
-      state = await executeResume(state, answer);
-      render(state);
+      render({ ...state, running: true }, worktree);
+      state = await executeResume(state, worktree, answer);
+      render(state, worktree);
       continue;
     }
 
     if (key === "d") {
-      state = await executeDismiss(state);
-      render(state);
+      if (!requireWorktree(worktree)) continue;
+      state = await executeDismiss(state, worktree);
+      if (!state.lastError) worktree = null;
+      render(state, worktree);
       continue;
     }
 

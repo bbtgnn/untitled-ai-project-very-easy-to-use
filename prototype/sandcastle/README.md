@@ -9,7 +9,7 @@
 | [`src/tui.ts`](./src/tui.ts) | TUI shell |
 | [`src/actions.ts`](./src/actions.ts) | Prototype actions → state updates |
 | [`src/state.ts`](./src/state.ts) | `PrototypeState` + initial values |
-| [`src/orchestrator.ts`](./src/orchestrator.ts) | Sandcastle worktree API |
+| [`src/sandcastle-config.ts`](./src/sandcastle-config.ts) | Agent/sandbox wiring + run outcome mapping |
 | [`src/env.ts`](./src/env.ts) | `.env` load + pi auth |
 | [`src/constants.ts`](./src/constants.ts) | Signals, model, branch naming |
 
