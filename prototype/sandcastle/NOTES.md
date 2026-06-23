@@ -4,6 +4,8 @@
 
 **Answer:** Yes — with `createWorktree()` as the anchor, Podman for runs, no-sandbox for interactive, and escalation via `NEEDS_HUMAN` + session resume.
 
-**Deferred:** Task file schema, Beads, live run validation with Ollama Cloud auth.
+**Standalone prototype:** Logic consolidated in `src/logic.ts` for reading and testing without importing `@repo/orchestrator`. When validated, fold decisions into `packages/orchestrator` and delete this folder.
 
-**Next:** Delete `prototype/sandcastle/` once you've driven the TUI and validated escalation; keep `packages/orchestrator`.
+**Deferred:** Task file schema, Beads, full escalation loop validation end-to-end.
+
+**Next:** Drive the TUI (`w` → `r` → optional `a`), update this verdict, then delete `prototype/sandcastle/`.

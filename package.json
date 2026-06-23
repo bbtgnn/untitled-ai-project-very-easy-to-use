@@ -11,5 +11,8 @@
   },
   "dependencies": {
     "@repo/orchestrator": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0"
   }
 }

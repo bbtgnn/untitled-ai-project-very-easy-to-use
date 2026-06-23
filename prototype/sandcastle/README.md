@@ -2,7 +2,7 @@
 
 **Question:** Does `createWorktree()` + `wt.run()` / `wt.interactive()` + escalation fit this monorepo?
 
-Uses `@repo/orchestrator` — the logic worth keeping lives there, not here.
+**Standalone:** All orchestrator logic is in [`src/logic.ts`](./src/logic.ts) — no `@repo/orchestrator` dependency. [`src/tui.ts`](./src/tui.ts) is a thin shell.
 
 ## Run
 
@@ -23,7 +23,5 @@ bun run prototype:sandcastle
 | `a` | Resume after `NEEDS_HUMAN` escalation |
 | `d` | `wt.close()` — human dismissal |
 | `q` | Quit |
-
-Thin runner (no TUI): `bun run sandcastle:run [trackerId] [slug] [prompt]`
 
 See [NOTES.md](./NOTES.md) for the verdict.
