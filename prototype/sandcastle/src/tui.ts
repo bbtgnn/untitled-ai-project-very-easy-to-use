@@ -8,7 +8,17 @@ import {
   executeResume,
   executeRun,
 } from "./actions.ts";
-import { initialState, type PrototypeState } from "./state.ts";
+import {
+  INTERACTIVE_PROMPT,
+  resumePrompt,
+  RUN_PROMPT,
+} from "./prompts.ts";
+import {
+  interactiveOptions,
+  prepare,
+  runOptions,
+} from "./sandcastle-config.ts";
+import { initialState, repoRoot, type PrototypeState } from "./state.ts";
 
 const bold = (s: string) => `\x1b[1m${s}\x1b[0m`;
 const dim = (s: string) => `\x1b[2m${s}\x1b[0m`;
@@ -18,7 +28,7 @@ const NO_WORKTREE = "No open worktree — press [w] first.";
 function render(state: PrototypeState, worktree: Worktree | null) {
   console.clear();
   console.log(bold("Sandcastle prototype"));
-  console.log(dim("src/actions.ts → sandcastle-config → sandcastle\n"));
+  console.log(dim("tui → prompts + sandcastle-config → actions → sandcastle\n"));
 
   console.log(bold("State"));
   console.log(`  branch:             ${state.branch}`);
@@ -76,7 +86,11 @@ async function main() {
         console.log(dim("Worktree already open."));
         continue;
       }
-      const opened = await executeOpenWorktree(state);
+      prepare(repoRoot);
+      const opened = await executeOpenWorktree(state, {
+        cwd: repoRoot,
+        branchStrategy: { type: "branch", branch: state.branch },
+      });
       state = opened.state;
       worktree = opened.worktree;
       render(state, worktree);
@@ -86,7 +100,7 @@ async function main() {
     if (key === "r") {
       if (!requireWorktree(worktree)) continue;
       render({ ...state, running: true }, worktree);
-      state = await executeRun(state, worktree);
+      state = await executeRun(state, worktree, runOptions(RUN_PROMPT));
       render(state, worktree);
       continue;
     }
@@ -94,7 +108,11 @@ async function main() {
     if (key === "i") {
       if (!requireWorktree(worktree)) continue;
       render({ ...state, running: true }, worktree);
-      state = await executeInteractive(state, worktree);
+      state = await executeInteractive(
+        state,
+        worktree,
+        interactiveOptions(INTERACTIVE_PROMPT),
+      );
       render(state, worktree);
       continue;
     }
@@ -107,7 +125,11 @@ async function main() {
       }
       const answer = await rl.question("Human answer: ");
       render({ ...state, running: true }, worktree);
-      state = await executeResume(state, worktree, answer);
+      state = await executeResume(
+        state,
+        worktree,
+        runOptions(resumePrompt(answer), state.pendingEscalation.sessionId),
+      );
       render(state, worktree);
       continue;
     }

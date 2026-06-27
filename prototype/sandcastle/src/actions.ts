@@ -1,20 +1,51 @@
-import { createWorktree, type Worktree } from "@ai-hero/sandcastle";
-import { failAction, withAction } from "./action-utils.ts";
 import {
-  interactiveOptions,
-  prepare,
-  resumePrompt,
-  runOptions,
-  toRunOutcome,
-  type RunOutcome,
-} from "./sandcastle-config.ts";
-import { repoRoot, type PrototypeState } from "./state.ts";
+  createWorktree,
+  type CreateWorktreeOptions,
+  type Worktree,
+  type WorktreeInteractiveOptions,
+  type WorktreeRunOptions,
+} from "@ai-hero/sandcastle";
+import { failAction, withAction } from "./action-utils.ts";
+import { COMPLETE_SIGNAL, ESCALATION_SIGNAL } from "./constants.ts";
+import { type PrototypeState } from "./state.ts";
 
-const RUN_PROMPT =
-  "PROTOTYPE TASK: Create or update prototype/sandcastle/PROTOTYPE_MARKER.txt with a single line: run-ok. Commit the change. Emit <promise>COMPLETE</promise> when done, or <promise>NEEDS_HUMAN</promise> if blocked.";
+const RUN_DEFAULTS = {
+  maxIterations: 1,
+  completionSignal: [COMPLETE_SIGNAL, ESCALATION_SIGNAL],
+} satisfies Pick<WorktreeRunOptions, "maxIterations" | "completionSignal">;
 
-const INTERACTIVE_PROMPT =
-  "PROTOTYPE: explore the repo — conversation, exploration, research. Exit when done.";
+export type RunActionOptions = Omit<
+  WorktreeRunOptions,
+  "completionSignal" | "maxIterations"
+>;
+
+function withRunDefaults(options: RunActionOptions): WorktreeRunOptions {
+  return { ...RUN_DEFAULTS, ...options };
+}
+
+export type RunOutcome = {
+  kind: "complete" | "escalated";
+  branch: string;
+  commits: { sha: string }[];
+  completionSignal?: string;
+  sessionId?: string;
+  stdoutPreview: string;
+};
+
+export function toRunOutcome(
+  result: Awaited<ReturnType<Worktree["run"]>>,
+): RunOutcome {
+  const lastIteration = result.iterations.at(-1);
+  return {
+    kind:
+      result.completionSignal === ESCALATION_SIGNAL ? "escalated" : "complete",
+    branch: result.branch,
+    commits: result.commits,
+    completionSignal: result.completionSignal,
+    sessionId: lastIteration?.sessionId,
+    stdoutPreview: result.stdout.slice(-500),
+  };
+}
 
 function escalationFrom(outcome: RunOutcome) {
   return outcome.kind === "escalated" && outcome.sessionId
@@ -24,14 +55,11 @@ function escalationFrom(outcome: RunOutcome) {
 
 export async function executeOpenWorktree(
   state: PrototypeState,
+  options: CreateWorktreeOptions,
 ): Promise<{ state: PrototypeState; worktree: Worktree | null }> {
   let opened: Worktree | null = null;
   const nextState = await withAction(state, "open-worktree", async () => {
-    prepare(repoRoot);
-    opened = await createWorktree({
-      branchStrategy: { type: "branch", branch: state.branch },
-      cwd: repoRoot,
-    });
+    opened = await createWorktree(options);
     return {
       worktreePath: opened.worktreePath,
       lastResult: { branch: opened.branch, worktreePath: opened.worktreePath },
@@ -44,14 +72,13 @@ export async function executeOpenWorktree(
 export async function executeRun(
   state: PrototypeState,
   worktree: Worktree,
+  options: RunActionOptions,
 ): Promise<PrototypeState> {
   return withAction(
     state,
     "run",
     async () => {
-      const outcome = toRunOutcome(
-        await worktree.run(runOptions(RUN_PROMPT)),
-      );
+      const outcome = toRunOutcome(await worktree.run(withRunDefaults(options)));
       return {
         worktreePath: worktree.worktreePath,
         pendingEscalation: escalationFrom(outcome),
@@ -65,7 +92,7 @@ export async function executeRun(
 export async function executeResume(
   state: PrototypeState,
   worktree: Worktree,
-  humanAnswer: string,
+  options: RunActionOptions,
 ): Promise<PrototypeState> {
   const running = { ...state, running: true, lastError: null, lastResult: null };
 
@@ -78,10 +105,7 @@ export async function executeResume(
   }
 
   return withAction(running, "resume", async () => {
-    const sessionId = state.pendingEscalation!.sessionId;
-    const outcome = toRunOutcome(
-      await worktree.run(runOptions(resumePrompt(humanAnswer), sessionId)),
-    );
+    const outcome = toRunOutcome(await worktree.run(withRunDefaults(options)));
     return {
       pendingEscalation: escalationFrom(outcome),
       lastResult: { ...outcome },
@@ -92,14 +116,13 @@ export async function executeResume(
 export async function executeInteractive(
   state: PrototypeState,
   worktree: Worktree,
+  options: WorktreeInteractiveOptions,
 ): Promise<PrototypeState> {
   return withAction(
     state,
     "interactive",
     async () => {
-      const result = await worktree.interactive(
-        interactiveOptions(INTERACTIVE_PROMPT),
-      );
+      const result = await worktree.interactive(options);
       return {
         worktreePath: worktree.worktreePath,
         lastResult: {

@@ -6,10 +6,11 @@
 
 | File | Layer |
 |------|-------|
-| [`src/tui.ts`](./src/tui.ts) | TUI shell |
-| [`src/actions.ts`](./src/actions.ts) | Prototype actions → state updates |
+| [`src/tui.ts`](./src/tui.ts) | TUI shell + composition (prompts, config, actions) |
+| [`src/actions.ts`](./src/actions.ts) | Pass-through Sandcastle options → state updates |
+| [`src/prompts.ts`](./src/prompts.ts) | Prototype task prompts |
 | [`src/state.ts`](./src/state.ts) | `PrototypeState` + initial values |
-| [`src/sandcastle-config.ts`](./src/sandcastle-config.ts) | Agent/sandbox wiring + run outcome mapping |
+| [`src/sandcastle-config.ts`](./src/sandcastle-config.ts) | Agent/sandbox wiring defaults |
 | [`src/env.ts`](./src/env.ts) | `.env` load + pi auth |
 | [`src/constants.ts`](./src/constants.ts) | Signals, model, branch naming |
 
